@@ -3,7 +3,7 @@
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"
   ],
-  "idf.portWin": "detect",
+  "idf.portWin": "COM13",
   "idf.currentSetup": "C:\\Users\\ASUS\\esp\\v5.5.1\\esp-idf",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32"
@@ -13,5 +13,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=d:\\GITGUB\\ESP-NOW\\Tx\\Tx_espnow\\build"
-  ]
+  ],
+  "idf.flashType": "UART"
 }
