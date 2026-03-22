@@ -5,7 +5,11 @@
 #include "string.h"
 #include "nvs_flash.h"
 #include "esp_now.h"
+#include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
+#define LED_PIN GPIO_NUM_2
 // declare functions
 void send_cb(const esp_now_send_info_t *info, esp_now_send_status_t status);
 void recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len);
@@ -42,11 +46,16 @@ void espnow_init(void)
 // MAC TX
 uint8_t peer_mac[6] = {0xF0, 0x24, 0xF9, 0xEB, 0x6F, 0x6C};
 
+
 // receive callback function
-void recv_cb(const esp_now_recv_info_t *info,
-             const uint8_t *data, int len)
+volatile uint8_t led_trigger = 0;
+void recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len)
 {
-    printf("Received: %.*s\n", len, data);
+    if (data[0] == 2)
+    {
+        led_trigger = 1;
+    }
+    
 }
 
 // send callback function
@@ -59,4 +68,25 @@ void app_main(void)
 {
     wifi_init();
     espnow_init();
+
+    // gpio config
+    gpio_config_t io ={
+        .pin_bit_mask = (1ULL << LED_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io);
+    while (1)
+    {
+        if (led_trigger)
+        {
+            gpio_set_level(LED_PIN, 1);
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            gpio_set_level(LED_PIN, 0);
+            led_trigger = 0;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
