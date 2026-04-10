@@ -1,3 +1,4 @@
 {
-    "idf.currentSetup": "C:\\Users\\ASUS\\esp\\v5.5.1\\esp-idf"
+    "idf.currentSetup": "C:\\Users\\ASUS\\esp\\v5.5.1\\esp-idf",
+    "cmake.sourceDirectory": "D:/GITGUB/ESP-NOW/Rx/Rx_espnow/main"
 }
