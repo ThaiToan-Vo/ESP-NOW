@@ -21,6 +21,24 @@ volatile bool is_gateway_found = false;
 volatile esp_now_send_status_t last_status = ESP_NOW_SEND_FAIL;
 uint8_t current_ch = 1;
 
+#define TAG "ESP_NOW_SENDER"
+
+typedef struct {
+    char header[2];    // "N1" - Mật khẩu nhận diện
+    uint8_t node_id;   // ID của Node (1, 2, 3...)
+    float voltage;     // V
+    float current;     // I
+    float power;       // P
+    float energy;      // Wh
+} __attribute__((packed)) power_data_t;
+
+typedef struct {
+    uint8_t node_id;
+    uint8_t gain;
+    uint8_t energy_cmd; 
+} __attribute__((packed)) node_ctrl_t;
+
+
 void wifi_init(void)
 {
     esp_err_t ret = nvs_flash_init();
@@ -69,10 +87,13 @@ void add_peer(void)
 void send_cb(const esp_now_send_info_t *info, esp_now_send_status_t status)
 {
     last_status = status;
-    if (status == ESP_NOW_SEND_SUCCESS) {
+    if (status == ESP_NOW_SEND_SUCCESS) 
+    {
         is_gateway_found = true;
         printf("Send OK\n");
-    } else {
+    } 
+    else 
+    {
         printf("Send FAIL\n");
     }
 }
@@ -80,7 +101,10 @@ void send_cb(const esp_now_send_info_t *info, esp_now_send_status_t status)
 // receive callback function
 void recv_cb(const esp_now_recv_info_t *info, const uint8_t *data, int len)
 {
-    
+    node_ctrl_t *incoming = (node_ctrl_t *)data;
+    ESP_LOGI(TAG, "Node %d, Gain %d , Energy=%dWh", 
+             incoming->node_id, incoming->gain, incoming->energy_cmd);
+
 }
 
 // Task xử lý quét kênh và gửi dữ liệu
@@ -109,7 +133,8 @@ void send_data_task(void *pvParameters)
             // TRẠNG THÁI ĐÃ KẾT NỐI: Chờ nhấn nút
             if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == 1) {
                 uint8_t led_data = 2; // Lệnh bật LED
-                esp_now_send(peer_mac, &led_data, sizeof(led_data));
+                const char *handshake_data = "N1";
+                esp_now_send(peer_mac, (uint8_t *)handshake_data, sizeof(handshake_data));
                 
                 // Đợi 100ms để check trạng thái gửi
                 vTaskDelay(pdMS_TO_TICKS(100));
